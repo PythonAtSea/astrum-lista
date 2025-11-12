@@ -25,9 +25,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}
       >
-        {children}
+        <header className="border-b border-border p-6 text-3xl font-bold">
+          Astrum Lista
+        </header>
+        <main className="grow p-6">{children}</main>
+        <footer>[todo]</footer>
       </body>
     </html>
   );
