@@ -1,5 +1,6 @@
 import GridImage from "@/components/grid-image";
 import image from "@/public/nebula.jpg";
+import Link from "next/link";
 export default function Home() {
   return (
     <div>
@@ -11,6 +12,9 @@ export default function Home() {
         useColor={true}
       />
       <h1 className="text-3xl font-black">hey!</h1>
+      <Link href="/images" className="text-blue-500 hover:underline">
+        space images
+      </Link>
     </div>
   );
 }
