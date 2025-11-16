@@ -34,6 +34,7 @@ export interface MediaItem {
 
 export interface MediaItemWithLinks extends MediaItem {
   links?: AssetLink[];
+  href?: string;
 }
 
 export interface CollectionItem {

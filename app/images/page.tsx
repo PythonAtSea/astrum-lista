@@ -5,12 +5,23 @@ import React from "react";
 import type {
   SearchResponse,
   MediaItemWithLinks,
-  AssetLink,
+  CollectionItem,
 } from "@/lib/nasa-types";
 import Link from "next/link";
 
 const getImageUrl = (item: MediaItemWithLinks): string | null => {
   return item.links?.find((link) => link.render === "image")?.href || null;
+};
+
+const getHighResImageUrl = (item: MediaItemWithLinks): string | null => {
+  const imageLink = item.links
+    ?.sort((a, b) => {
+      const sizeA = a.size || 0;
+      const sizeB = b.size || 0;
+      return sizeB - sizeA;
+    })
+    .find((link) => link.render === "image");
+  return imageLink?.href || getImageUrl(item);
 };
 
 export default function Page() {
@@ -36,18 +47,17 @@ export default function Page() {
       .then((response: SearchResponse) => {
         const allItems: MediaItemWithLinks[] = [];
         if (response.collection?.items) {
-          response.collection.items.forEach(
-            (item: { data?: object[]; links?: AssetLink[] }) => {
-              if (item.data && Array.isArray(item.data)) {
-                allItems.push(
-                  ...item.data.map((dataItem) => ({
-                    ...dataItem,
-                    links: item.links,
-                  }))
-                );
-              }
+          response.collection.items.forEach((item: CollectionItem) => {
+            if (item.data && Array.isArray(item.data)) {
+              allItems.push(
+                ...item.data.map((dataItem) => ({
+                  ...dataItem,
+                  links: item.links,
+                  href: item.href,
+                }))
+              );
             }
-          );
+          });
         }
 
         const collection = {
@@ -75,19 +85,39 @@ export default function Page() {
         {collection?.data?.map((item, idx) => {
           const imageUrl = getImageUrl(item);
           return (
-            <div key={item.nasa_id ?? idx} className="border">
+            <div key={item.nasa_id ?? idx} className="border h-fit">
               <div className="p-4">
                 <h3 className="font-semibold text-lg">
                   {item.title ?? "Untitled"}
+                  {item.date_created && (
+                    <span className="ml-2 text-sm text-muted-foreground">
+                      • {new Date(item.date_created).getFullYear()}
+                    </span>
+                  )}
+                  {item.photographer && (
+                    <span className="ml-2 text-sm text-muted-foreground">
+                      • {item.photographer}
+                    </span>
+                  )}
                 </h3>
                 {imageUrl && (
                   <Image
                     src={imageUrl}
-                    alt={item.title ?? "NASA image"}
+                    alt={item.description_508 || item.title || "NASA Image"}
                     width={300}
                     height={200}
                     className="w-full h-48 object-cover my-2"
                   />
+                )}
+                {item.href && (
+                  <Link
+                    href={item.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-500 hover:underline"
+                  >
+                    View on NASA Site
+                  </Link>
                 )}
                 {item.keywords?.map((keyword) => (
                   <div
@@ -101,9 +131,11 @@ export default function Page() {
               <div className="p-4 border-t">
                 <Link
                   className="inline-flex items-center text-blue-500 hover:underline"
-                  href={`/image/${item.nasa_id}`}
+                  href={getHighResImageUrl(item) || "#"}
+                  target="_blank"
+                  rel="noopener noreferrer"
                 >
-                  More details
+                  Full resolution image
                 </Link>
               </div>
             </div>

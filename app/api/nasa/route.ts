@@ -70,51 +70,37 @@ async function proxy(request: Request, params: { path?: string[] }) {
   });
 }
 
-export async function GET(
-  req: Request,
-  { params }: { params: { path?: string[] } }
-) {
+export async function GET(req: Request, props: { params: Promise<{ path?: string[] }> }) {
+  const params = await props.params;
   return proxy(req, params);
 }
 
-export async function POST(
-  req: Request,
-  { params }: { params: { path?: string[] } }
-) {
+export async function POST(req: Request, props: { params: Promise<{ path?: string[] }> }) {
+  const params = await props.params;
   return proxy(req, params);
 }
 
-export async function PUT(
-  req: Request,
-  { params }: { params: { path?: string[] } }
-) {
+export async function PUT(req: Request, props: { params: Promise<{ path?: string[] }> }) {
+  const params = await props.params;
   return proxy(req, params);
 }
 
-export async function PATCH(
-  req: Request,
-  { params }: { params: { path?: string[] } }
-) {
+export async function PATCH(req: Request, props: { params: Promise<{ path?: string[] }> }) {
+  const params = await props.params;
   return proxy(req, params);
 }
 
-export async function DELETE(
-  req: Request,
-  { params }: { params: { path?: string[] } }
-) {
+export async function DELETE(req: Request, props: { params: Promise<{ path?: string[] }> }) {
+  const params = await props.params;
   return proxy(req, params);
 }
 
-export async function OPTIONS(
-  req: Request,
-  { params }: { params: { path?: string[] } }
-) {
+export async function OPTIONS(req: Request, props: { params: Promise<{ path?: string[] }> }) {
+  const params = await props.params;
   return proxy(req, params);
 }
 
-export async function HEAD(
-  req: Request,
-  { params }: { params: { path?: string[] } }
-) {
+export async function HEAD(req: Request, props: { params: Promise<{ path?: string[] }> }) {
+  const params = await props.params;
   return proxy(req, params);
 }
