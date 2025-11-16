@@ -8,12 +8,14 @@ import type {
   CollectionItem,
 } from "@/lib/nasa-types";
 import Link from "next/link";
+import { ExternalLink } from "lucide-react";
 
 const getImageUrl = (item: MediaItemWithLinks): string | null => {
   return item.links?.find((link) => link.render === "image")?.href || null;
 };
 
 const getHighResImageUrl = (item: MediaItemWithLinks): string | null => {
+  if (item.orig) return item.orig;
   const imageLink = item.links
     ?.sort((a, b) => {
       const sizeA = a.size || 0;
@@ -66,6 +68,45 @@ export default function Page() {
 
         setCollection(collection);
         setRaw(JSON.stringify(response, null, 2));
+        const fetchedHrefs = new Set<string>();
+        for (const item of allItems) {
+          if (!item.href) continue;
+          if (fetchedHrefs.has(item.href)) continue;
+          fetchedHrefs.add(item.href);
+          fetch(item.href)
+            .then((res) => res.json())
+            .then((data: unknown) => {
+              if (!Array.isArray(data)) return;
+              const assets = data as string[];
+
+              if (assets.length === 0) return;
+
+              const origCandidate = assets.find((d) =>
+                String(d).includes("~orig")
+              );
+
+              const thumbnailCandidate = assets.find((d) =>
+                String(d).includes("~thumb")
+              );
+
+              const thumb = thumbnailCandidate || assets[0];
+
+              const orig = origCandidate || assets[0];
+
+              setCollection((prev) => {
+                if (!prev) return prev;
+                return {
+                  ...prev,
+                  data: prev.data.map((it) =>
+                    it.href === item.href ? { ...it, orig, thumb } : it
+                  ),
+                };
+              });
+            })
+            .catch((err) => {
+              console.error(err);
+            });
+        }
       })
       .catch((err) => {
         console.error(err);
@@ -100,29 +141,19 @@ export default function Page() {
                     </span>
                   )}
                 </h3>
-                {imageUrl && (
+                {(item.thumbnail || imageUrl) && (
                   <Image
-                    src={imageUrl}
+                    src={item.thumbnail || imageUrl || ""}
                     alt={item.description_508 || item.title || "NASA Image"}
                     width={300}
                     height={200}
                     className="w-full h-48 object-cover my-2"
                   />
                 )}
-                {item.href && (
-                  <Link
-                    href={item.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-500 hover:underline"
-                  >
-                    View on NASA Site
-                  </Link>
-                )}
                 {item.keywords?.map((keyword) => (
                   <div
                     key={keyword}
-                    className="inline-block bg-secondary px-2 py-1 text-xs font-semibold text-secondary-foreground mr-2"
+                    className="inline-block bg-secondary px-2 py-1 text-xs font-semibold text-secondary-foreground mr-2 mb-2"
                   >
                     {keyword}
                   </div>
@@ -135,7 +166,8 @@ export default function Page() {
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  Full resolution image
+                  Original {item.media_type}{" "}
+                  <ExternalLink className="ml-1 w-4 h-4" />
                 </Link>
               </div>
             </div>
