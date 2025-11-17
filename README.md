@@ -2,6 +2,12 @@
 
 Astrum Lista (or just Lista) is a client for a couple NASA's public APIs. Right now it has support for the NASA Image and Video Libary as well as NASA Asteroids - Near Earth Object Web Service. I'm hoping to add the Astronomy Picture of The Day (APOD), but that's not runnig right now (yay governement shutdown!)
 
+![Astrum Lista](image.png)
+
+## Etymology
+
+Astrum Lista is a rough translation of "star list" in Latin. I guess "asteroid list" would be more accurate, but oh well.
+
 ## Running Locally
 
 Firstly, ya gotta start the dev server:
