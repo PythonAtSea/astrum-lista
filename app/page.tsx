@@ -1,20 +1,27 @@
-import GridImage from "@/components/grid-image";
 import image from "@/public/nebula.jpg";
+import Image from "next/image";
 import Link from "next/link";
 export default function Home() {
   return (
     <div>
-      <GridImage
-        image={image}
-        className="mb-8"
-        credit="ESA Hubble"
-        creditUrl="https://esahubble.org/images/heic1509a/"
-        useColor={true}
+      <Image
+        src={image}
+        alt="Nebula"
+        className="w-full h-64 object-cover rounded-lg mb-8"
       />
       <h1 className="text-3xl font-black">hey!</h1>
-      <Link href="/images" className="text-blue-500 hover:underline">
-        space images
-      </Link>
+
+      <h2 className="text-2xl font-semibold mb-4">Wanna see:</h2>
+      <p>
+        <Link href="/images" className="ml-4 text-blue-500 hover:underline">
+          NASA Image and Video Library
+        </Link>
+      </p>
+      <p>
+        <Link href="/asteroids" className="ml-4 text-blue-500 hover:underline">
+          NASA Asteroids - Near Earth Object Web Service
+        </Link>
+      </p>
     </div>
   );
 }

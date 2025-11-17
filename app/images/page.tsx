@@ -120,6 +120,7 @@ export default function Page() {
       <Input
         className="max-w-2xl mb-8"
         value={search}
+        placeholder="Mars Perseverance rover"
         onChange={(e) => setSearch(e.target.value)}
       />
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -150,7 +151,7 @@ export default function Page() {
                     className="w-full h-48 object-cover my-2"
                   />
                 )}
-                {item.keywords?.map((keyword) => (
+                {item.keywords?.slice(0, 10).map((keyword) => (
                   <div
                     key={keyword}
                     className="inline-block bg-secondary px-2 py-1 text-xs font-semibold text-secondary-foreground mr-2 mb-2"

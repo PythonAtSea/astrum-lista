@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import Link from "next/link";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,7 +29,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}
       >
         <header className="border-b border-border p-6 text-3xl font-bold">
-          Astrum Lista
+          <Link href="/">Astrum Lista</Link>
         </header>
         <main className="grow p-6">{children}</main>
         <footer>[todo]</footer>
