@@ -31,12 +31,10 @@ export default function Page() {
   const [collection, setCollection] = React.useState<{
     data: MediaItemWithLinks[];
   } | null>(null);
-  const [raw, setRaw] = React.useState("");
 
   React.useEffect(() => {
     if (search === "") {
       setCollection(null);
-      setRaw("");
       return;
     }
 
@@ -67,7 +65,6 @@ export default function Page() {
         };
 
         setCollection(collection);
-        setRaw(JSON.stringify(response, null, 2));
         const fetchedHrefs = new Set<string>();
         for (const item of allItems) {
           if (!item.href) continue;
@@ -111,7 +108,6 @@ export default function Page() {
       .catch((err) => {
         console.error(err);
         setCollection(null);
-        setRaw(String(err));
       });
   }, [search]);
 
@@ -175,7 +171,20 @@ export default function Page() {
           );
         })}
       </div>
-      <pre className="mt-4 max-w-3xl overflow-auto text-xs">{raw}</pre>
+      {(collection?.data.length === 0 || search === "") && (
+        <div className="mt-4 p-6 border border-dashed rounded-md bg-muted/5 text-center w-full">
+          <div className="font-semibold">No images found.</div>
+          <div className="text-sm text-muted-foreground mt-1">
+            Try searching for something{search !== "" ? " else" : ""}, like the{" "}
+            <span
+              className="text-blue-500 hover:underline cursor-pointer"
+              onClick={() => setSearch("moon")}
+            >
+              moon!
+            </span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -35,7 +35,7 @@ export default function Page() {
   }, [startDate, endDate]);
 
   const asteroidsList = React.useMemo(() => {
-    if (!asteroids) return [];
+    if (!asteroids || !asteroids.near_earth_objects) return [];
     return Object.values(asteroids.near_earth_objects).flat();
   }, [asteroids]);
 
@@ -47,7 +47,7 @@ export default function Page() {
           <Input
             type="date"
             value={startDate}
-            onChange={(e) => {
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
               const val = e.target.value;
               setStartDate(val);
               if (endDate && val > endDate) setEndDate(val);
@@ -60,7 +60,7 @@ export default function Page() {
           <Input
             type="date"
             value={endDate}
-            onChange={(e) => {
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
               const val = e.target.value;
               setEndDate(val);
               if (startDate && val < startDate) setStartDate(val);
@@ -91,127 +91,159 @@ export default function Page() {
               Showing {asteroidsList.length} near earth objects (NEOs) from{" "}
               {startDate} to {endDate}
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
-              {asteroidsList
-                .sort((a, b) => {
-                  let aVal = 0;
-                  let bVal = 0;
-                  if (sortBy === "date") {
-                    aVal = new Date(
-                      a.close_approach_data[0].close_approach_date
-                    ).getTime();
-                    bVal = new Date(
-                      b.close_approach_data[0].close_approach_date
-                    ).getTime();
-                  } else if (sortBy === "az") {
-                    aVal = a.name.charCodeAt(0);
-                    bVal = b.name.charCodeAt(0);
-                  } else if (sortBy === "za") {
-                    aVal = b.name.charCodeAt(0);
-                    bVal = a.name.charCodeAt(0);
-                  } else if (sortBy === "id") {
-                    aVal = parseInt(a.neo_reference_id, 10);
-                    bVal = parseInt(b.neo_reference_id, 10);
-                  }
-                  if (a.is_potentially_hazardous_asteroid) {
-                    aVal += 1000000000000000;
-                  }
-                  if (b.is_potentially_hazardous_asteroid) {
-                    bVal += 1000000000000000;
-                  }
-                  if (a.is_sentry_object) {
-                    aVal += 100000000000000;
-                  }
-                  if (b.is_sentry_object) {
-                    bVal += 100000000000000;
-                  }
-                  return bVal - aVal;
-                })
-                .map((neo) => (
-                  <div
-                    key={neo.id}
-                    className={`p-2 border ${
-                      neo.is_potentially_hazardous_asteroid
-                        ? "border-destructive bg-destructive/10"
-                        : neo.is_sentry_object
-                        ? "border-orange-500 bg-orange-500/10"
-                        : "border-border bg-card"
-                    }`}
-                    title={neo.name}
-                  >
-                    <div>
-                      {neo.name}
-                      {neo.is_potentially_hazardous_asteroid && (
-                        <span className="ml-2 text-destructive font-bold text-sm">
-                          Potentially Hazardous
-                        </span>
-                      )}
-                      {neo.is_sentry_object && (
-                        <span className="text-sm text-orange-500 font-bold ml-2">
-                          <Link href={neo.sentry_data ? neo.sentry_data : "#"}>
-                            Sentry Object
-                          </Link>
-                        </span>
-                      )}
-                    </div>
-                    <div className="text-muted-foreground text-xs">
-                      {`Estimated Diameter: ${neo.estimated_diameter.feet.estimated_diameter_min.toFixed(
-                        1
-                      )} ft - ${neo.estimated_diameter.feet.estimated_diameter_max.toFixed(
-                        1
-                      )} ft`}
-                    </div>
-                    <div className="text-xs">
-                      {`${neo.close_approach_data.length} close approach${
-                        neo.close_approach_data.length !== 1 ? "es" : ""
+            {asteroidsList.length === 0 ? (
+              <div className="mt-4 p-6 border border-dashed rounded-md bg-muted/5 text-center">
+                <div className="font-semibold">No near-earth objects found</div>
+                <div className="text-sm text-muted-foreground mt-1">
+                  There were no NEOs returned for {startDate} — {endDate}. Try
+                  expanding the date range! (or decreasing it if it&apos;s
+                  massive!)
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                {asteroidsList
+                  .sort((a, b) => {
+                    let aVal = 0;
+                    let bVal = 0;
+                    if (sortBy === "date") {
+                      const aDateStr =
+                        a.close_approach_data?.[0]?.close_approach_date;
+                      const bDateStr =
+                        b.close_approach_data?.[0]?.close_approach_date;
+                      aVal = aDateStr ? new Date(aDateStr).getTime() : 0;
+                      bVal = bDateStr ? new Date(bDateStr).getTime() : 0;
+                    } else if (sortBy === "az") {
+                      aVal = a.name?.charCodeAt(0) ?? 0;
+                      bVal = b.name?.charCodeAt(0) ?? 0;
+                    } else if (sortBy === "za") {
+                      aVal = b.name?.charCodeAt(0) ?? 0;
+                      bVal = a.name?.charCodeAt(0) ?? 0;
+                    } else if (sortBy === "id") {
+                      aVal = parseInt(a.neo_reference_id ?? "0", 10) || 0;
+                      bVal = parseInt(b.neo_reference_id ?? "0", 10) || 0;
+                    }
+                    if (a.is_potentially_hazardous_asteroid) {
+                      aVal += 1000000000000000;
+                    }
+                    if (b.is_potentially_hazardous_asteroid) {
+                      bVal += 1000000000000000;
+                    }
+                    if (a.is_sentry_object) {
+                      aVal += 100000000000000;
+                    }
+                    if (b.is_sentry_object) {
+                      bVal += 100000000000000;
+                    }
+                    return bVal - aVal;
+                  })
+                  .map((neo) => (
+                    <div
+                      key={neo.id}
+                      className={`p-2 border ${
+                        neo.is_potentially_hazardous_asteroid
+                          ? "border-destructive bg-destructive/10"
+                          : neo.is_sentry_object
+                          ? "border-orange-500 bg-orange-500/10"
+                          : "border-border bg-card"
                       }`}
-                      <ul className="list-disc pl-4 space-y-1">
-                        {neo.close_approach_data.map((cad, idx) => (
-                          <li
-                            key={idx}
-                            className="text-xs text-muted-foreground"
-                          >
-                            <>
-                              {new Date(cad.close_approach_date) > now
-                                ? "Missed"
-                                : "Will Miss"}{" "}
-                              {cad.orbiting_body} by{" "}
-                              <strong>
-                                {parseFloat(
-                                  cad.miss_distance.miles
-                                ).toLocaleString("en-US", {
-                                  maximumFractionDigits: 0,
-                                })}
-                              </strong>{" "}
-                              miles on{" "}
-                              <strong>{cad.close_approach_date}</strong> at a
-                              velocity of{" "}
-                              <strong>
-                                {parseFloat(
-                                  cad.relative_velocity.miles_per_hour
-                                ).toLocaleString("en-US", {
-                                  maximumFractionDigits: 0,
-                                })}{" "}
-                              </strong>
-                              mph
-                            </>
-                          </li>
-                        ))}
-                      </ul>
+                      title={neo.name}
+                    >
+                      <div>
+                        {neo.name}
+                        {neo.is_potentially_hazardous_asteroid && (
+                          <span className="ml-2 text-destructive font-bold text-sm">
+                            Potentially Hazardous
+                          </span>
+                        )}
+                        {neo.is_sentry_object && (
+                          <span className="text-sm text-orange-500 font-bold ml-2">
+                            <Link
+                              href={neo.sentry_data ? neo.sentry_data : "#"}
+                            >
+                              Sentry Object
+                            </Link>
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-muted-foreground text-xs">
+                        {(() => {
+                          const minFt =
+                            neo.estimated_diameter?.feet
+                              ?.estimated_diameter_min;
+                          const maxFt =
+                            neo.estimated_diameter?.feet
+                              ?.estimated_diameter_max;
+                          return `Estimated Diameter: ${
+                            typeof minFt === "number"
+                              ? minFt.toFixed(1)
+                              : "unknown"
+                          } ft - ${
+                            typeof maxFt === "number"
+                              ? maxFt.toFixed(1)
+                              : "unknown"
+                          } ft`;
+                        })()}
+                      </div>
+                      <div className="text-xs">
+                        {(() => {
+                          const cadCount = neo.close_approach_data?.length ?? 0;
+                          return `${cadCount} close approach${
+                            cadCount !== 1 ? "es" : ""
+                          }`;
+                        })()}
+                        <ul className="list-disc pl-4 space-y-1">
+                          {(neo.close_approach_data ?? []).map((cad, idx) => (
+                            <li
+                              key={idx}
+                              className="text-xs text-muted-foreground"
+                            >
+                              <>
+                                {cad.close_approach_date &&
+                                new Date(cad.close_approach_date) > now
+                                  ? "Missed"
+                                  : "Will Miss"}{" "}
+                                {cad.orbiting_body} by{" "}
+                                <strong>
+                                  {parseFloat(
+                                    cad?.miss_distance?.miles ?? "0"
+                                  ).toLocaleString("en-US", {
+                                    maximumFractionDigits: 0,
+                                  })}
+                                </strong>{" "}
+                                miles on{" "}
+                                <strong>
+                                  {cad.close_approach_date ?? "unknown date"}
+                                </strong>{" "}
+                                at a velocity of{" "}
+                                <strong>
+                                  {parseFloat(
+                                    cad?.relative_velocity?.miles_per_hour ??
+                                      "0"
+                                  ).toLocaleString("en-US", {
+                                    maximumFractionDigits: 0,
+                                  })}{" "}
+                                </strong>
+                                mph
+                              </>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div className="text-xs mt-1">
+                        <a
+                          href={neo.nasa_jpl_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-500 hover:underline"
+                        >
+                          NASA JPL Link
+                        </a>
+                      </div>
                     </div>
-                    <div className="text-xs mt-1">
-                      <a
-                        href={neo.nasa_jpl_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-500 hover:underline"
-                      >
-                        NASA JPL Link
-                      </a>
-                    </div>
-                  </div>
-                ))}
-            </div>
+                  ))}
+              </div>
+            )}
           </div>
         ) : (
           <div className="text-sm text-muted-foreground">
