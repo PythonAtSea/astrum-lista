@@ -38,11 +38,7 @@ export default function Page() {
       return;
     }
 
-    fetch(
-      `/api/nasa/images/search${
-        search ? `?q=${encodeURIComponent(search)}` : ""
-      }`
-    )
+    fetch(`https://images-api.nasa.gov/search?q=${encodeURIComponent(search)}`)
       .then((res) => res.json())
       .then((response: SearchResponse) => {
         const allItems: MediaItemWithLinks[] = [];

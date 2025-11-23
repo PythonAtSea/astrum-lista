@@ -14,6 +14,12 @@ import React from "react";
 export default function Page() {
   const now = new Date();
   const format = (d: Date) => d.toISOString().slice(0, 10);
+  const parseDate = (dateStr: string) => new Date(dateStr + "T00:00:00Z");
+  const getDaysDiff = (date1: string, date2: string) => {
+    const d1 = parseDate(date1);
+    const d2 = parseDate(date2);
+    return Math.floor((d2.getTime() - d1.getTime()) / (1000 * 60 * 60 * 24));
+  };
   const [endDate, setEndDate] = React.useState(() =>
     format(new Date(now.getFullYear(), now.getMonth(), now.getDate() + 7))
   );
@@ -49,8 +55,16 @@ export default function Page() {
             value={startDate}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
               const val = e.target.value;
-              setStartDate(val);
-              if (endDate && val > endDate) setEndDate(val);
+              if (val) {
+                const daysDiff = getDaysDiff(val, endDate);
+                if (daysDiff > 7) {
+                  const newEnd = format(
+                    new Date(parseDate(val).getTime() + 7 * 24 * 60 * 60 * 1000)
+                  );
+                  setEndDate(newEnd);
+                }
+                setStartDate(val);
+              }
             }}
             max={endDate}
           />
@@ -62,8 +76,16 @@ export default function Page() {
             value={endDate}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
               const val = e.target.value;
-              setEndDate(val);
-              if (startDate && val < startDate) setStartDate(val);
+              if (val) {
+                const daysDiff = getDaysDiff(startDate, val);
+                if (daysDiff > 7) {
+                  const newStart = format(
+                    new Date(parseDate(val).getTime() - 7 * 24 * 60 * 60 * 1000)
+                  );
+                  setStartDate(newStart);
+                }
+                setEndDate(val);
+              }
             }}
             min={startDate}
           />
